@@ -1,6 +1,27 @@
 # Job Portal App - Manual Application Workflow
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Node.js](https://img.shields.io/badge/Node.js-18+-green.svg)](https://nodejs.org/)
+[![Nuxt](https://img.shields.io/badge/Nuxt-4-00DC82.svg)](https://nuxt.com/)
+[![Vue](https://img.shields.io/badge/Vue-3-4FC08D.svg)](https://vuejs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6.svg)](https://www.typescriptlang.org/)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](./CONTRIBUTING.md)
+
 A smart job discovery and tracking application built with Nuxt 4. This app helps you find relevant jobs through intelligent AI-powered matching while keeping you in full control of the application process.
+
+> **Star this repo** if you find it useful! Your support helps others discover this tool.
+
+## Demo
+
+<!-- Add your demo GIF or screenshot here -->
+<!-- ![Demo](./docs/demo.gif) -->
+
+**Quick Preview:**
+| Dashboard | Job Matching | Settings |
+|-----------|--------------|----------|
+| View matched jobs sorted by AI score | See detailed match breakdown | Upload resume & configure scrapers |
+
+> **Live Demo:** Coming soon! For now, run locally with `npm run dev`
 
 ## Philosophy: Manual > Automated
 

@@ -1,0 +1,11 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "buildCommand": "npm run build",
+  "outputDirectory": ".output/public",
+  "framework": "nuxtjs",
+  "installCommand": "npm install && npx playwright install chromium",
+  "regions": ["bom1"],
+  "env": {
+    "NUXT_PUBLIC_APP_URL": "https://job-portal-app.vercel.app"
+  }
+}
