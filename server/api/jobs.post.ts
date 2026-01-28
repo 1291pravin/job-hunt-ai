@@ -12,7 +12,9 @@ const schema = z.object({
   experience: z.string().nullable().optional(),
   description: z.string().nullable().optional(),
   requirements: z.string().nullable().optional(),
+  // Optional: for reference only, not used for auto-apply (manual workflow)
   email: z.string().email().nullable().optional().or(z.literal('')),
+  // Optional: original job application URL if available
   apply_url: z.string().url().nullable().optional().or(z.literal('')),
   posted_at: z.string().nullable().optional(),
   match_score: z.number().min(0).max(100).nullable().optional(),

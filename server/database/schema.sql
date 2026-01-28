@@ -50,7 +50,7 @@ CREATE INDEX IF NOT EXISTS idx_jobs_source ON jobs(source);
 CREATE UNIQUE INDEX IF NOT EXISTS idx_jobs_url ON jobs(url);
 CREATE INDEX IF NOT EXISTS idx_jobs_scraped_at ON jobs(scraped_at DESC);
 
--- Default settings
+-- Default settings (example values - customize in Settings page after resume upload)
 INSERT OR IGNORE INTO settings (key, value) VALUES
   ('keywords', '["Vue.js", "Nuxt", "Full Stack", "Frontend", "TypeScript"]'),
   ('enabled_sources', '["naukri", "linkedin"]'),
