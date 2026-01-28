@@ -179,14 +179,13 @@ npm run preview
 ### Jobs Table
 ```sql
 id, source, external_id, url, title, company, location,
-salary, experience, description, requirements, email,
-apply_url, posted_at, scraped_at, match_score, status, notes
+salary, experience, description, requirements,
+posted_at, scraped_at, match_score, status, notes
 ```
 
 ### Applications Table
 ```sql
-id, job_id, email_subject, email_body, sent_at,
-response_received, response_notes
+id, job_id, applied_at
 ```
 
 ### Settings Table
@@ -220,35 +219,73 @@ At Haiku rates: 750K × $0.03/100K = $0.225/month
 job-portal-app/
 ├── app/
 │   ├── pages/
-│   │   ├── index.vue              # Job listings dashboard
+│   │   ├── index.vue              # Job listings (default: matched + high score)
 │   │   ├── jobs/[id].vue          # Job detail page
-│   │   └── settings.vue           # Settings & resume upload
-│   ├── layouts/default.vue        # App shell
-│   └── assets/css/main.css        # Global styles
+│   │   └── settings.vue           # Resume upload & scraper config
+│   └── layouts/default.vue        # App shell
 ├── server/
-│   ├── api/                       # REST API routes
-│   │   ├── jobs.*.ts
-│   │   ├── resume.*.ts
-│   │   ├── match.post.ts
-│   │   ├── scrape.post.ts
-│   │   └── settings.*.ts
+│   ├── api/
+│   │   ├── jobs.*.ts              # Job CRUD
+│   │   ├── resume.*.ts            # Resume management
+│   │   ├── match.post.ts          # AI matching
+│   │   ├── scrape.post.ts         # Run scrapers
+│   │   ├── settings.*.ts          # App settings
+│   │   ├── auth/                  # Login flow for scrapers
+│   │   └── agents/                # CLI agent generation
 │   ├── database/
-│   │   ├── index.ts               # DB operations
+│   │   ├── index.ts               # DB operations & migrations
 │   │   └── schema.sql             # SQLite schema
 │   ├── scraper/
 │   │   ├── index.ts               # Scraper orchestrator
 │   │   ├── sites/
-│   │   │   ├── base.ts            # Base scraper class
-│   │   │   ├── naukri.ts
-│   │   │   └── linkedin.ts
+│   │   │   ├── base.ts            # Abstract base scraper
+│   │   │   ├── naukri.ts          # Naukri scraper
+│   │   │   └── linkedin.ts        # LinkedIn scraper
 │   │   └── utils/browser.ts       # Playwright setup
 │   └── utils/
-│       └── agent-templates.ts     # Claude agent generation
-├── types/index.ts                 # TypeScript types
+│       └── agent-templates.ts     # Generate .claude/ files
+├── types/index.ts                 # Zod schemas & TypeScript types
 ├── data/                          # SQLite database (gitignored)
 ├── playwright-data/               # Browser sessions (gitignored)
-└── .claude/                       # Generated agents/skills
+└── .claude/                       # Generated agents/skills (gitignored)
 ```
+
+## Using Claude Code CLI
+
+The app generates `.claude/` agent files that can be used with Claude Code CLI for advanced usage.
+
+### Setup CLI Integration
+
+1. Upload your resume via the Settings page
+2. Click "Regenerate Agents" button
+3. This creates:
+   - `.claude/agents/job-matcher.md` - Matching criteria reference
+   - `.claude/skills/match-jobs.md` - Skill documentation
+
+### CLI Commands
+
+```bash
+# View your matching criteria
+claude "Read the job-matcher agent and summarize my profile"
+
+# Get help understanding a job match
+claude "Based on job-matcher criteria, would this job be a good match: [paste job description]"
+
+# Quick status check
+claude "What are my primary tech stack requirements?"
+```
+
+### How It Works
+
+The agent files contain your extracted profile:
+- Years of experience
+- Experience levels (junior, mid, senior, lead, etc.)
+- Primary & secondary tech stacks
+- Target domains (eCommerce, SaaS, FinTech, etc.)
+- Target roles
+- Location preferences
+
+This allows Claude Code to give you personalized advice about job opportunities directly in your terminal.
 
 ## Troubleshooting
 

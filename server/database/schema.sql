@@ -26,15 +26,11 @@ CREATE TABLE IF NOT EXISTS jobs (
 -- SQLite doesn't support IF NOT EXISTS for columns, so we handle via pragma
 -- The app code should handle this gracefully
 
--- Application tracking
+-- Application tracking (simple - just track when applied)
 CREATE TABLE IF NOT EXISTS applications (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   job_id INTEGER NOT NULL,
-  email_subject TEXT,
-  email_body TEXT,
-  sent_at TEXT,
-  response_received INTEGER DEFAULT 0,
-  response_notes TEXT,
+  applied_at TEXT DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (job_id) REFERENCES jobs(id) ON DELETE CASCADE
 );
 

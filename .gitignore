@@ -32,3 +32,6 @@ data/
 # Browser session data
 playwright-data/
 .browser-data/
+
+# Generated Claude Code agent files (user-specific)
+.claude/

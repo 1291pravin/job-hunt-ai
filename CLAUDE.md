@@ -1,6 +1,6 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This file provides guidance to Claude Code when working with this repository.
 
 ## Commands
 
@@ -12,64 +12,96 @@ npm run dev          # Start dev server at http://localhost:3000
 npm run build        # Build for production
 npm run preview      # Preview production build
 
-# Scraping (via API)
-# POST /api/scrape with body: { sources: string[], keywords: string[], maxPages: number }
+# Key API Endpoints (via curl or UI)
+# POST /api/scrape   - Run job scrapers
+# POST /api/match    - Match jobs against resume (AI-powered)
+# POST /api/resume   - Upload resume for profile extraction
 ```
 
 ## Architecture
 
-This is a **Nuxt 4** job portal application for scraping, tracking, and managing job listings. It uses:
+**Nuxt 4** job portal for scraping, AI-matching, and tracking job applications.
+
 - **Frontend**: Vue 3 + Tailwind CSS 4 + TypeScript
-- **Backend**: Nitro server with file-based API routes
-- **Database**: SQLite via better-sqlite3 (stored at `./data/jobs.db`)
-- **Scraping**: Playwright for headless browser automation
+- **Backend**: Nitro server + SQLite (better-sqlite3)
+- **AI Matching**: Claude Haiku via CLI for cost-efficient scoring
+- **Scraping**: Playwright + Chromium for Naukri/LinkedIn
 
 ### Key Directories
 
 ```
 server/
-├── api/                    # Nitro API routes (REST endpoints)
-│   ├── jobs.get.ts         # GET /api/jobs (list with filters/pagination)
-│   ├── jobs.post.ts        # POST /api/jobs (create job)
-│   ├── jobs/[id].*.ts      # GET/PATCH/DELETE /api/jobs/:id
-│   ├── settings.*.ts       # GET/POST /api/settings
-│   └── scrape.post.ts      # POST /api/scrape (trigger scraping)
+├── api/
+│   ├── jobs.*.ts           # Job CRUD endpoints
+│   ├── match.post.ts       # AI job matching (20 jobs/batch)
+│   ├── resume.*.ts         # Resume upload & profile extraction
+│   ├── scrape.post.ts      # Run scrapers
+│   ├── settings.*.ts       # App settings
+│   ├── auth/               # Login flow for protected scrapers
+│   └── agents/             # CLI agent file generation
 ├── database/
-│   ├── index.ts            # Database singleton, CRUD operations, migrations
-│   └── schema.sql          # SQLite schema (jobs, applications, settings tables)
-└── scraper/
-    ├── index.ts            # Scraper orchestrator (runScraper function)
-    ├── sites/
-    │   ├── base.ts         # BaseScraper abstract class
-    │   ├── remoteok.ts     # RemoteOK scraper
-    │   ├── weworkremotely.ts
-    │   └── naukri.ts
-    └── utils/browser.ts    # Playwright browser management
+│   ├── index.ts            # DB operations & migrations
+│   └── schema.sql          # SQLite schema
+├── scraper/
+│   ├── sites/              # Site-specific scrapers (base, naukri, linkedin)
+│   └── utils/browser.ts    # Playwright management
+└── utils/
+    └── agent-templates.ts  # Generate .claude/ agent files
 
 app/
 ├── pages/
-│   ├── index.vue           # Job listings dashboard with filters/stats
-│   ├── jobs/[id].vue       # Individual job detail page
-│   └── settings.vue        # Scraper configuration
-└── layouts/default.vue     # App shell layout
+│   ├── index.vue           # Job dashboard (default: matched + high score)
+│   ├── jobs/[id].vue       # Job detail page
+│   └── settings.vue        # Resume upload, scraper config
+└── layouts/default.vue     # App shell
 
-types/index.ts              # Zod schemas and TypeScript types for Job, Application
+types/index.ts              # Zod schemas & TypeScript types
 ```
 
 ### Data Flow
 
-1. **Scraping**: `POST /api/scrape` → `runScraper()` → Site-specific scrapers extend `BaseScraper` → Jobs saved to SQLite
-2. **Job Management**: Frontend calls REST APIs → `server/database/index.ts` handles all DB operations
-3. **Job Status Workflow**: `new` → `interested` → `applied` → `rejected`/`ignored`
+1. **Resume Upload**: `POST /api/resume` → Extract profile via Claude Haiku → Store in settings
+2. **Scraping**: `POST /api/scrape` → Playwright scrapes job sites → Jobs saved with status='new'
+3. **Matching**: `POST /api/match` → AI scores 20 jobs/batch → Updates status to 'matched' (≥50) or 'ignored' (<50)
+4. **Review**: User reviews matched jobs → Manual application → Status: interested → applied → archived
+
+### Job Status Workflow
+
+```
+new → matched → interested → applied → archived
+         ↓                       ↓
+      ignored                 rejected
+```
+
+### Database Schema
+
+**jobs**: id, source, external_id, url, title, company, location, salary, experience, description, requirements, posted_at, scraped_at, match_score, status, notes
+
+**applications**: id, job_id, applied_at (simple tracking)
+
+**settings**: key, value (JSON) - stores keywords, sources, resume, profile
+
+### Matching Algorithm
+
+Weighted scoring (0-100):
+- Tech Stack: 40%
+- Role Alignment: 25%
+- Experience Level: 20%
+- Domain Relevance: 15%
+
+Threshold: ≥50 = matched, <50 = ignored
+
+### CLI Agent Files
+
+The app generates `.claude/` files for Claude Code CLI usage:
+- `.claude/agents/job-matcher.md` - Reference for matching criteria
+- `.claude/skills/match-jobs.md` - Skill documentation
+
+Regenerate via Settings page "Regenerate Agents" button or `POST /api/agents/regenerate`.
 
 ### Adding a New Scraper
 
 1. Create `server/scraper/sites/newsite.ts` extending `BaseScraper`
-2. Implement required methods: `getJobListSelector()`, `buildSearchUrl()`, `parseJobCard()`
-3. Optionally override `parseJobDetails()` for full job page scraping
-4. Register in `server/scraper/index.ts` scrapers object
-5. Add source to `types/index.ts` JobSource enum
-
-### Database
-
-SQLite with auto-initialization. Schema in `server/database/schema.sql`. Migrations handled in `server/database/index.ts` via `runMigrations()`. Database path configurable via `NUXT_DATABASE_PATH` env var.
+2. Implement: `getJobListSelector()`, `buildSearchUrl()`, `parseJobCard()`
+3. Register in `server/scraper/index.ts`
+4. Add source to `types/index.ts` JobSource enum

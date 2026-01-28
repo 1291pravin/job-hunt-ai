@@ -2,13 +2,9 @@ import { z } from 'zod'
 import { updateJob, getJobById, createApplication } from '../../database'
 
 const schema = z.object({
-  status: z.enum(['new', 'interested', 'applied', 'rejected', 'ignored']).optional(),
+  status: z.enum(['new', 'matched', 'interested', 'applied', 'archived', 'rejected', 'ignored']).optional(),
   match_score: z.number().min(0).max(100).nullable().optional(),
-  notes: z.string().nullable().optional(),
-  email: z.string().email().nullable().optional(),
-  apply_url: z.string().url().nullable().optional(),
-  email_subject: z.string().optional(),
-  email_body: z.string().optional()
+  notes: z.string().nullable().optional()
 })
 
 export default defineEventHandler(async (event) => {
@@ -34,18 +30,12 @@ export default defineEventHandler(async (event) => {
 
   // Create application record when status changes to 'applied'
   if (updates.status === 'applied' && existingJob.status !== 'applied') {
-    createApplication({
-      job_id: id,
-      email_subject: updates.email_subject,
-      email_body: updates.email_body
-    })
+    createApplication(id)
   }
 
-  // Remove email fields before updating job
-  const { email_subject, email_body, ...jobUpdates } = updates
-  const success = updateJob(id, jobUpdates)
+  const success = updateJob(id, updates)
 
-  if (!success && Object.keys(jobUpdates).length > 0) {
+  if (!success && Object.keys(updates).length > 0) {
     throw createError({ statusCode: 500, message: 'Failed to update job' })
   }
 

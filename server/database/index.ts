@@ -279,13 +279,12 @@ export function getAllSettings(): Record<string, string> {
   return Object.fromEntries(rows.map(r => [r.key, r.value]))
 }
 
-// Applications
-export function createApplication(app: { job_id: number; email_subject?: string; email_body?: string }): number {
+// Applications (simple tracking)
+export function createApplication(jobId: number): number {
   const database = getDatabase()
   const result = database.prepare(`
-    INSERT INTO applications (job_id, email_subject, email_body, sent_at)
-    VALUES (?, ?, ?, datetime('now'))
-  `).run(app.job_id, app.email_subject || null, app.email_body || null)
+    INSERT INTO applications (job_id) VALUES (?)
+  `).run(jobId)
   return result.lastInsertRowid as number
 }
 
