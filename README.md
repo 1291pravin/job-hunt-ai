@@ -21,7 +21,7 @@ A smart job discovery and tracking application built with Nuxt 4. This app helps
 |-----------|--------------|----------|
 | View matched jobs sorted by AI score | See detailed match breakdown | Upload resume & configure scrapers |
 
-> **Live Demo:** Coming soon! For now, run locally with `npm run dev`
+> **Note:** This is a local-first app. See [Why Local?](#why-local) below.
 
 ## Philosophy: Manual > Automated
 
@@ -74,6 +74,29 @@ new → matched → interested → applied → rejected/ignored
 - Job sources selection
 - Scraping configuration
 - Resume profile display
+
+## Why Local?
+
+This app is designed to run on your machine, not in the cloud. Here's why:
+
+| Reason | Explanation |
+|--------|-------------|
+| **Login sessions** | Scraping Naukri/LinkedIn requires your logged-in browser session - can't be shared with a server |
+| **Data privacy** | Your resume, job matches, and application history stay on your machine |
+| **Playwright/Chromium** | Browser automation needs ~400MB+ and persistent state - doesn't fit serverless |
+| **SQLite** | Local database means your data persists without cloud dependency |
+| **No recurring costs** | No server to pay for - just ~$0.22/month in AI tokens |
+
+**This is a feature, not a limitation.** Your job search data is personal - it should stay on your machine.
+
+### Can I deploy it anyway?
+
+If you want a hosted version (e.g., for a team), consider:
+- **Railway** or **Render** - Docker support with persistent volumes
+- **Self-hosted VPS** - Full control on DigitalOcean/Hetzner
+- **Docker Compose** - For local server deployment
+
+Cloud platforms like Vercel/Netlify won't work due to Playwright size limits and stateless architecture.
 
 ## Tech Stack
 
