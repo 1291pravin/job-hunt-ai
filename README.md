@@ -5,89 +5,86 @@
 [![Nuxt](https://img.shields.io/badge/Nuxt-4-00DC82.svg)](https://nuxt.com/)
 [![Vue](https://img.shields.io/badge/Vue-3-4FC08D.svg)](https://vuejs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6.svg)](https://www.typescriptlang.org/)
-[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](./CONTRIBUTING.md)
 
-A smart job discovery and tracking application built with Nuxt 4. This app helps you find relevant jobs through intelligent AI-powered matching while keeping you in full control of the application process.
-
-> **Star this repo** if you find it useful! Your support helps others discover this tool.
-
-## Demo
-
-<!-- Add your demo GIF or screenshot here -->
-<!-- ![Demo](./docs/demo.gif) -->
-
-**Quick Preview:**
-| Dashboard | Job Matching | Settings |
-|-----------|--------------|----------|
-| View matched jobs sorted by AI score | See detailed match breakdown | Upload resume & configure scrapers |
-
-> **Note:** This is a local-first app. See [Why Local?](#why-local) below.
+A smart job discovery and tracking application built with Nuxt 4. Finds relevant jobs through AI-powered matching while keeping you in full control of the application process.
 
 ## Philosophy: Manual > Automated
 
 **What This App Does:**
-- 🎯 Discovers jobs from multiple sources (Naukri, LinkedIn)
-- 🤖 AI-powered matching using your full resume (Haiku model)
-- 📊 Organizes jobs with match scores and status tracking
-- 📝 Tracks your application pipeline
+- Discovers jobs from multiple sources (Naukri, LinkedIn)
+- AI-powered matching using your full resume (Claude Haiku)
+- Organizes jobs with match scores and status tracking
+- Tracks your application pipeline
 
 **What This App Doesn't Do:**
-- ❌ No auto-apply to jobs
-- ❌ No automated email sending
-- ❌ No form auto-fill
-- ✅ You review, you decide, you apply manually
+- No auto-apply to jobs
+- No automated email sending
+- No form auto-fill
+- You review, you decide, you apply manually
 
-**Why This Approach:**
-- Token efficient: ~40K tokens/day (8% of Claude Pro plan)
-- Full control over your applications
-- Better job quality through manual review
-- Sustainable for daily use
+> This is a local-first app. Your job search data stays on your machine. See [Why Local?](#why-local) below.
+
+## How It Works
+
+```
+Upload Resume --> AI Profile Extraction --> Run Scrapers --> New Jobs
+--> AI Matching --> Score >= 50? --> Matched --> Manual Review --> Apply --> Track
+                    Score < 50?  --> Ignored
+```
+
+1. **Upload Resume** - AI extracts your profile (skills, experience, preferences)
+2. **Configure & Scrape** - Playwright scrapes Naukri/LinkedIn for jobs
+3. **AI Matching** - Claude Haiku scores each job (0-100)
+4. **Review Matches** - You review jobs scoring >= 50
+5. **Apply Manually** - Visit original site, apply thoughtfully
+6. **Track Progress** - Update status and add notes
 
 ## Features
 
-### 1. Resume Management
+### Resume Management
 - Upload your resume (.md, .txt, .markdown)
-- AI extracts your profile (experience, stack, roles, domains)
+- AI extracts your profile automatically (experience, tech stacks, target roles, domains, location preferences)
 - Used for intelligent job matching
 
-### 2. Intelligent Job Matching
-- Batch processing: 20 jobs per run
-- Weighted scoring system:
-  - Tech Stack (40%)
-  - Role Alignment (25%)
-  - Experience Level (20%)
-  - Domain Relevance (15%)
-- Threshold: matched ≥ 50, ignored < 50
+### Intelligent Job Matching
 
-### 3. Job Status Workflow
+Weighted scoring algorithm:
+- **Tech Stack Match:** 40%
+- **Role Alignment:** 25%
+- **Experience Level:** 20%
+- **Domain Relevance:** 15%
+
+Batch processing: 20 jobs per run. Threshold: matched >= 50, ignored < 50.
+
+### Job Status Workflow
 ```
-new → matched → interested → applied → rejected/ignored
+new --> matched --> interested --> applied --> archived
+            |                        |
+         ignored                  rejected
 ```
 
-### 4. Job Scrapers
+### Multi-Site Job Scraping
 - **Naukri**: Search-based scraping
 - **LinkedIn**: Search + recommendations scraping
 - Playwright-based for reliable extraction
+- Automatic deduplication by external job ID
 
-### 5. Settings Management
+### Settings Management
 - Keywords customization
 - Job sources selection
 - Scraping configuration
 - Resume profile display
+- Claude agent regeneration
 
 ## Why Local?
 
-This app is designed to run on your machine, not in the cloud. Here's why:
-
 | Reason | Explanation |
 |--------|-------------|
-| **Login sessions** | Scraping Naukri/LinkedIn requires your logged-in browser session - can't be shared with a server |
+| **Login sessions** | Scraping Naukri/LinkedIn requires your logged-in browser session |
 | **Data privacy** | Your resume, job matches, and application history stay on your machine |
-| **Playwright/Chromium** | Browser automation needs ~400MB+ and persistent state - doesn't fit serverless |
+| **Playwright/Chromium** | Browser automation needs ~400MB+ and persistent state |
 | **SQLite** | Local database means your data persists without cloud dependency |
 | **No recurring costs** | No server to pay for - just ~$0.22/month in AI tokens |
-
-**This is a feature, not a limitation.** Your job search data is personal - it should stay on your machine.
 
 ### Can I deploy it anyway?
 
@@ -100,10 +97,13 @@ Cloud platforms like Vercel/Netlify won't work due to Playwright size limits and
 
 ## Tech Stack
 
-- **Frontend**: Vue 3 + Nuxt 4 + TypeScript + Tailwind CSS 4
-- **Backend**: Nitro server + SQLite (better-sqlite3)
-- **AI**: Claude Haiku (via Claude CLI)
-- **Scraping**: Playwright + Chromium
+| Layer | Technologies |
+|-------|-------------|
+| **Frontend** | Vue 3, Nuxt 4, TypeScript, Tailwind CSS 4 |
+| **Backend** | Nitro server, SQLite (better-sqlite3) |
+| **AI** | Claude Haiku (via Claude CLI) |
+| **Scraping** | Playwright + Chromium |
+| **Validation** | Zod |
 
 ## Setup
 
@@ -148,7 +148,7 @@ npm run preview
 1. Navigate to Settings page (`/settings`)
 2. Click "Upload Resume"
 3. Select your resume file (.md, .txt, .markdown)
-4. Wait for AI profile extraction (~10-15 seconds)
+4. Wait for AI profile extraction
 5. Verify extracted profile data
 
 ### Step 2: Configure Settings
@@ -170,7 +170,7 @@ npm run preview
 1. Click "Match Jobs" button
 2. AI processes 20 jobs at a time
 3. Jobs categorized:
-   - **matched** (score ≥ 50): Worth reviewing
+   - **matched** (score >= 50): Worth reviewing
    - **ignored** (score < 50): Not a good fit
 
 ### Step 5: Review & Apply Manually
@@ -239,23 +239,13 @@ key, value (JSON)
 
 ## Cost Analysis
 
-### Daily Token Usage
-
-| Activity | Tokens | Frequency | Daily Total |
-|----------|--------|-----------|-------------|
+| Activity | Tokens/Run | Frequency | Daily Total |
+|----------|------------|-----------|-------------|
 | Upload resume | 15K | Once (initial) | 0K |
-| Match jobs | 25K | 1-2x/day | 25-50K |
-| **Total** | - | - | **25-50K** |
+| Match jobs (20 jobs) | 25K | 1-2x/day | 25-50K |
+| **Total** | - | - | **25-50K/day** |
 
-**Percentage of Pro Plan:** 5-10% (leaves 90-95% for other work)
-
-### Monthly Cost Estimate
-```
-Matching: 25K tokens/day × 30 days = 750K tokens/month
-At Haiku rates: 750K × $0.03/100K = $0.225/month
-```
-
-**Essentially free within Pro plan limits!**
+Monthly: ~750K tokens/month at Haiku rates = ~$0.22/month. Within Claude Pro plan: 5-10% usage.
 
 ## Directory Structure
 
@@ -319,17 +309,12 @@ claude "Based on job-matcher criteria, would this job be a good match: [paste jo
 claude "What are my primary tech stack requirements?"
 ```
 
-### How It Works
+## Adding a New Scraper
 
-The agent files contain your extracted profile:
-- Years of experience
-- Experience levels (junior, mid, senior, lead, etc.)
-- Primary & secondary tech stacks
-- Target domains (eCommerce, SaaS, FinTech, etc.)
-- Target roles
-- Location preferences
-
-This allows Claude Code to give you personalized advice about job opportunities directly in your terminal.
+1. Create `server/scraper/sites/newsite.ts` extending `BaseScraper`
+2. Implement: `getJobListSelector()`, `buildSearchUrl()`, `parseJobCard()`
+3. Register in `server/scraper/index.ts`
+4. Update `types/index.ts` JobSource enum
 
 ## Troubleshooting
 
@@ -353,88 +338,17 @@ This allows Claude Code to give you personalized advice about job opportunities 
 - Check database path in console logs
 - Ensure write permissions on `data/` directory
 
-## Adding a New Scraper
-
-1. Create `server/scraper/sites/newsite.ts`:
-```typescript
-import { BaseScraper } from './base'
-
-export class NewSiteScraper extends BaseScraper {
-  getJobListSelector(): string {
-    return '.job-card' // Your CSS selector
-  }
-
-  buildSearchUrl(keywords: string[]): string {
-    // Build search URL with keywords
-  }
-
-  async parseJobCard(element: ElementHandle): Promise<ParsedJob> {
-    // Extract job data from card
-  }
-}
-```
-
-2. Register in `server/scraper/index.ts`:
-```typescript
-import { NewSiteScraper } from './sites/newsite'
-
-const scrapers = {
-  naukri: NaukriScraper,
-  linkedin: LinkedInScraper,
-  newsite: NewSiteScraper, // Add here
-}
-```
-
-3. Update `types/index.ts` JobSource enum:
-```typescript
-export const JobSource = z.enum(['naukri', 'linkedin', 'newsite'])
-```
-
-## Future Enhancements (Not Planned)
-
-These are explicitly **NOT** being implemented (manual approach philosophy):
-
-❌ **Auto-Apply Features**
-- Auto-fill job application forms
-- Auto-answer screening questions
-- Auto-submit applications
-- Batch apply to multiple jobs
-
-❌ **Email Automation**
-- Auto-send cover letters
-- Auto-follow up with recruiters
-- Email templates with auto-send
-
-✅ **Could Add Later (Aligned with Manual Approach)**
-- Application deadline reminders
-- Job description comparison tool
-- Resume tailoring suggestions
-- Interview preparation notes
-- Salary negotiation tracker
-- Application response tracking
-
 ## Contributing
 
 This is a personal project, but suggestions are welcome! Please keep in mind the manual workflow philosophy when proposing features.
 
 ## License
 
-MIT License - see LICENSE file for details
-
-## Support
-
-For issues or questions:
-1. Check the troubleshooting section above
-2. Review CLAUDE.md for developer guidance
-3. Open an issue on GitHub (if applicable)
+MIT License - see LICENSE file for details.
 
 ## Acknowledgments
 
-- Built with Nuxt 4 and Vue 3
-- AI powered by Claude (Anthropic)
-- Scraping powered by Playwright
-- UI styled with Tailwind CSS 4
-
----
-
-**Remember:** This app is a discovery and organization tool. You maintain full control over your job applications. Apply thoughtfully and manually! 🎯
+- Built with [Nuxt 4](https://nuxt.com/) and [Vue 3](https://vuejs.org/)
+- AI powered by [Claude](https://www.anthropic.com/) (Anthropic)
+- Scraping powered by [Playwright](https://playwright.dev/)
+- UI styled with [Tailwind CSS 4](https://tailwindcss.com/)

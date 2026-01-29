@@ -35,3 +35,6 @@ playwright-data/
 
 # Generated Claude Code agent files (user-specific)
 .claude/
+
+# Marketing docs (local only)
+docs/marketing/
